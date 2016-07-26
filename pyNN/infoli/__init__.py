@@ -2,13 +2,15 @@
 Implementation of the PyNN API, for the Infoli extended version of Hodgkin-Huxley Conductance-based model.
 
 This simulator implements the PyNN API and generates input and starts running
-simulations in various platforms depending on nneuron population characteristics.
+simulations in various platforms depending on neuron population characteristics.
 
 :copyright: Copyright 2016 under GNU GPL 
 :license: CeCILL, see LICENSE for details + NTUA.
 """
 
 import logging
+import subprocess
+import os.path
 from pyNN import common
 from pyNN.common.control import DEFAULT_MAX_DELAY, DEFAULT_TIMESTEP, DEFAULT_MIN_DELAY
 from pyNN.connectors import *
@@ -20,7 +22,7 @@ from .projections import Projection
 from neo.io import get_io
 
 
-logger = logging.getLogger("PyNN")
+#logger = logging.getLogger("PyNN")
 
 
 def list_standard_models():
@@ -37,7 +39,24 @@ def setup(timestep=DEFAULT_TIMESTEP, min_delay=DEFAULT_MIN_DELAY,
     simulator.state.max_delay = max_delay
     simulator.state.mpi_rank = extra_params.get('rank', 0)
     simulator.state.num_processes = extra_params.get('num_processes', 1)
+
     return rank()
+
+def conn_generator(neurons, density_pct):
+    simulator.state.neuronum=neurons
+    print(simulator.state.neuronum)
+    pathh=os.getcwd()
+    subprocess.call(['rm', 'cellConnections.txt'])
+    cmdcc=['/home/harry/Dropbox/infoli/control_room/tools/connectivity_generator/percentage/conn_generator']
+    cmdcc.append(str(neurons))
+    cmdcc.append(str(density_pct))
+    print(cmdcc)
+    subprocess.call(cmdcc)
+    if os.path.isfile('cellConnections.txt'):
+        print("Connectivity Map Created!")
+    else:
+        print("Connectivity map creation failed")
+    
 
 
 def end(compatible_output=True):
