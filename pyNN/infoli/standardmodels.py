@@ -104,7 +104,24 @@ class HH_cond_exp(cells.HH_cond_exp):
         ('i_offset',   'I_OFFSET'),
     )
 
+class HH_cond_exp_exte(cells.HH_cond_exp):
+    __doc__ = cells.HH_cond_exp.__doc__
 
+    translations = build_translations(
+        ('gbar_Na',    'GBAR_NA'),
+        ('gbar_K',     'GBAR_K'),
+        ('g_leak',     'G_LEAK'),
+        ('cm',         'CM'),
+        ('v_offset',   'V_OFFSET'),
+        ('e_rev_Na',   'E_REV_NA'),
+        ('e_rev_K',    'E_REV_K'),
+        ('e_rev_leak', 'E_REV_LEAK'),
+        ('e_rev_E',    'E_REV_E'),
+        ('e_rev_I',    'E_REV_I'),
+        ('tau_syn_E',  'TAU_SYN_E'),
+        ('tau_syn_I',  'TAU_SYN_I'),
+        ('i_offset',   'I_OFFSET'),
+    )
 class IF_cond_exp_gsfa_grr(cells.IF_cond_exp_gsfa_grr):
     __doc__ = cells.IF_cond_exp_gsfa_grr.__doc__
 

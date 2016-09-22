@@ -1,6 +1,7 @@
 from pyNN import common
 import subprocess
 import os.path
+from pyNN.infoli.cells import NativeCellType
 name = "InfoliSimulator"
 
 
@@ -61,3 +62,44 @@ class State(common.control.BaseState):
         self.segment_counter += 1
 
 state = State()
+
+class SimpleNeuron(object):
+
+    def __init__(self, **parameters):
+        
+        
+        self.soma = Secscs(L=600, diam=2, nseg=5, Ra=100, v=-65.0, ref_v=70.0)
+
+        # needed for PyNN
+        self.source_section = self.soma
+        self.source = self.soma['ref_v']
+        self.parameter_names = ('g_leak', 'gnabar', 'gkbar')
+        self.traces = {}
+        self.recording_time = False
+    
+    def memb_init(self):
+        for seg in self.soma:
+            seg.v = self.v
+
+class SimpleNeuronType(NativeCellType):
+    default_parameters = {'g_leak': 0.0002, 'gkbar': 0.036, 'gnabar': 0.12}
+    default_initial_values = {'v': -65.0}
+    recordable = ['soma.v']
+    units = {'soma.v' : 'mV'}
+    #receptor_types = ['soma.cm']
+    model = SimpleNeuron
+
+# mock section
+class Secscs(object):
+    def __init__(self, L, diam, nseg, Ra, v, ref_v):
+        # set geometry
+        self.L = L
+        self.diam = diam
+        self.nseg = nseg
+        # set cable properties
+        self.Ra = Ra
+        #self.cm = cm
+        self.v = v
+        self.ref_v= ref_v
+
+

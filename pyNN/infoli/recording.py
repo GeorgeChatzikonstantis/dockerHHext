@@ -1,7 +1,9 @@
 import numpy
 from pyNN import recording
 from . import simulator
+import re
 
+recordable_pattern = re.compile(r'((?P<section>\w+)(\((?P<location>[-+]?[0-9]*\.?[0-9]+)\))?\.)?(?P<var>\w+)')
 
 class Recorder(recording.Recorder):
     _simulator = simulator

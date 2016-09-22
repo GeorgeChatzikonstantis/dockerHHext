@@ -1,0 +1,22 @@
+######################## 1
+import pyNN.infoli as sim
+from pyNN.infoli import setup, run, Population, Projection, AllToAllConnector, cells, simulator
+from pyNN.infoli.cells import NativeCellType
+from pyNN.infoli.simulator import SimpleNeuronType
+sim.setup()
+p1 = Population(1000, SimpleNeuronType(g_leak=0.0003))
+syn = sim.StaticSynapse(weight=0.01, delay=0.5)
+prj = Projection(p1, p1, AllToAllConnector(),synapse_type=None)
+
+######################### 2
+import pyNN.infoli as sim
+
+sim.setup()
+hh = sim.Population(1000, sim.HH_cond_exp_exte(i_offset=0.6), label="HH_cond_exp_exte")
+syn = StaticSynapse(weight=0.01, delay=0.5)
+prj = sim.Projection(hh2, hh2, sim.AllToAllConnector(), syn)
+prj.get(["weight", "delay"], format="array")
+
+
+
+
