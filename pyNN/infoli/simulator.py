@@ -17,7 +17,7 @@ class State(common.control.BaseState):
 
     def __init__(self):
         common.control.BaseState.__init__(self)
-        print("Lele init sim")
+        #print("Lele init sim")
         self.mpi_rank = 0
         self.num_processes = 1
         self.clear()

@@ -7,6 +7,8 @@ from pyNN import common
 from pyNN.core import ezip
 from pyNN.space import Space
 from . import simulator
+import numpy as np
+
 
 
 class Connection(common.Connection):
@@ -41,6 +43,23 @@ class Projection(common.Projection):
         #  Create connections
         self.connections = []
         connector.connect(self)
+        print("Lele projections")
+        to_pri=self.get(["weight"], format="array")
+        print(to_pri,"\n#\n")
+        print(to_pri[0],"\n#\n")
+        print(to_pri[0][0],"\n#\n")
+        print(to_pri[0][1],"\n#\n")
+        ff=open('cellConnections.txt', 'w')
+
+        for row in to_pri[0]:
+            for cell in row:
+                if np.isnan(cell):
+                    ff.write("0")
+                else:
+                    ff.write(str(cell))
+                ff.write("\t")
+            ff.write("\n")
+        ff.close()
 
     def __len__(self):
         return len(self.connections)
