@@ -29,7 +29,6 @@ class State(common.control.BaseState):
         self.running = True
 
     def run_until(self, tstop):
-        print("Leleuntil")
         self.t = tstop
         cmdtest=['/home/harry/Dropbox/infoli/stored_results/local/test1.sh']
         cmdtest.append('-network_size')

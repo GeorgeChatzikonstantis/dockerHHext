@@ -14,9 +14,9 @@ import pyNN.infoli as sim
 sim.setup()
 hh = sim.Population(10, sim.HH_cond_exp_exte(i_offset=0.6), label="HH_cond_exp_exte")
 syn = sim.StaticSynapse(weight=0.04, delay=0) # weight 0.04 delay 0
-prj = sim.Projection(hh2, hh2, sim.AllToAllConnector(allow_self_connections=False), syn)
+prj = sim.Projection(hh, hh, sim.AllToAllConnector(allow_self_connections=False), syn)
 prj.get(["weight"], format="array") # I only need weight 
-
+sim.run(1000)
 
 
 
