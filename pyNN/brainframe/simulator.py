@@ -1,8 +1,8 @@
 from pyNN import common
 import subprocess
 import os.path
-from pyNN.infoli.cells import NativeCellType
-name = "InfoliSimulator"
+from pyNN.brainframe.cells import NativeCellType
+name = "BrainframeSimulator"
 
 
 class ID(int, common.IDMixin):
@@ -30,15 +30,16 @@ class State(common.control.BaseState):
 
     def run_until(self, tstop):
         self.t = tstop
-        cmdtest=['/home/harry/Dropbox/infoli/stored_results/local/test1.sh']
+        cmdtest=['/home/harry/Dropbox/Projects/Vineyard/infoli-remote/test1.sh']
         cmdtest.append('-network_size')
         cmdtest.append(str(self.neuronum))
         cmdtest.append('-sim_time')
         cmdtest.append(str(self.t))
-        cmdtest.append('-connectivity_map')
+        #cmdtest.append('-connectivity_map')
 
         if os.path.isfile('cellConnections.txt'):
-            cmdtest.append('cellConnections.txt')
+            #cmdtest.append('cellConnections.txt')
+            print("Connectivity Map Created!")
         else:
             print("No connectivity map")
             exit()

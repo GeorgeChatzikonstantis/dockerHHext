@@ -52,3 +52,6 @@ examples/nineml_mechanisms
 # Other
 *.btr
 *.log
+
+# Sandbox folder
+sandbox

@@ -20,3 +20,5 @@ sim.run(1000)
 
 
 
+hh = sim.Population(1000, sim.HH_cond_exp_exte(i_offset=0.6), label="HH_cond_exp_exte")
+prj = sim.Projection(hh, hh, sim.FixedNumberPostConnector(12,allow_self_connections=False), syn)

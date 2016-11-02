@@ -20,7 +20,7 @@ from .standardmodels import *
 from .populations import Population, PopulationView, Assembly
 from .projections import Projection
 from neo.io import get_io
-from pyNN.infoli.cells import NativeCellType
+from pyNN.brainframe.cells import NativeCellType
 
 
 #logger = logging.getLogger("PyNN")
