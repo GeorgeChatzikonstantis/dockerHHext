@@ -30,7 +30,7 @@ class State(common.control.BaseState):
 
     def run_until(self, tstop):
         self.t = tstop
-        cmdtest=['/home/harry/Dropbox/Projects/Vineyard/infoli-remote/test1.sh']
+        cmdtest=['/srv/http/tools/neuro/bin/Phi-backend.sh']
         cmdtest.append('-network_size')
         cmdtest.append(str(self.neuronum))
         cmdtest.append('-sim_time')
