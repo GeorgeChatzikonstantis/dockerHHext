@@ -29,13 +29,13 @@ class Backend_selector: #Selecting appropriate simulation platform
             print("Density of the network: ",density)
             print("Number on neurons: ", num_of_neurons)
             if (num_of_neurons>=4000):
-                Backend_selector.bselection=2
+                Backend_selector.bselection=2 #GPU
             elif (density>=0.85 and num_of_neurons<4000):
-                Backend_selector.bselection=1
+                Backend_selector.bselection=1 #DFE
             elif (density<0.85 and num_of_neurons<900):
-                Backend_selector.bselection=1
+                Backend_selector.bselection=1 #DFE
             else:
-                Backend_selector.bselection=0
+                Backend_selector.bselection=0 #PHI
             print("Original Selection: ", Backend_selector.blist[Backend_selector.bselection])
 
             if Backend_selector.bselection==2: # currently we don'thave GPUs
@@ -43,4 +43,28 @@ class Backend_selector: #Selecting appropriate simulation platform
 
             tmp2=Backend_selector.bselection
             return Backend_selector.blist[tmp2]
+
+class Sim_core:
+
+    def __init__(self, platform):
+        self.platform= platform
+
+    def print_platform(self):
+        print(self.platform)
+
+    def read_conf(self, conf_file="sim_core.conf"):
+        print("Not yet Implemented")
+        self.ip="localhost"
+        self.run_path="lele"
+        self.input_path="input"
+        self.output_path="output"
+
+    def check_communication(self)
+        print("Not yet Implemented")
+        #ping something
+
+    def get_status(self):
+        print("Not yet Implemented")
+        #status of the accelerator platdorm
+
 
