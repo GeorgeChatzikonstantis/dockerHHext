@@ -45,17 +45,18 @@ class Projection(common.Projection):
         connector.connect(self)
         simulator.state.neuronum=len(postsynaptic_population)
         #print("Creating connectivity map!")
-        to_pri=self.get(["weight"], format="array")
-        ff=open('cellConnections.txt', 'w')
-        for row in to_pri[0]:
-            for cell in row:
-                if np.isnan(cell):
-                    ff.write("0.00")
-                else:
-                    ff.write(str(cell))
-                ff.write("\t")
-            ff.write("\n")
-        ff.close()
+# Disabled printing. it will be done on the server
+#        to_pri=self.get(["weight"], format="array")
+#        ff=open('cellConnections.txt', 'w')
+#        for row in to_pri[0]:
+#            for cell in row:
+#                if np.isnan(cell):
+#                    ff.write("0.00")
+#                else:
+#                    ff.write(str(cell))
+#                ff.write("\t")
+#            ff.write("\n")
+#        ff.close()
 
     def __len__(self):
         return len(self.connections)

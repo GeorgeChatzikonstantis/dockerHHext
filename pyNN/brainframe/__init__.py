@@ -21,6 +21,7 @@ from .populations import Population, PopulationView, Assembly
 from .projections import Projection
 from neo.io import get_io
 from pyNN.brainframe.cells import NativeCellType
+from .pyhet import *
 
 
 #logger = logging.getLogger("PyNN")

@@ -1,3 +1,10 @@
+from pyNN import common
+import os.path
+import configparser
+import subprocess
+from . import simulator
+from .projections import Projection
+
 class Backend_selector: #Selecting appropriate simulation platform
     blist=["phi","dfe","gpu"] #list of platforms
     bselection=0
@@ -44,27 +51,64 @@ class Backend_selector: #Selecting appropriate simulation platform
             tmp2=Backend_selector.bselection
             return Backend_selector.blist[tmp2]
 
-class Sim_core:
+# Sim_core is the main class that deals with the communication between webserver and the
+# accelerator
+class Sim_core(Projection):
 
-    def __init__(self, platform):
+    def __init__(self, platform, prj, conf_file="sim_core.ini"):
         self.platform= platform
+        self.conf_file=conf_file
+        self.prj=prj
+        self.config = configparser.ConfigParser()
+        self.config.read(conf_file)
+        self.ip = self.config.get("Server","IP")
+        self.user = self.config.get("Server","user")
+        self.outputpath= self.config.get("Paths","outputpath")
+
+    def print_conf(self):
+        print("Server:")
+        for key in self.config['Server']:
+            print(key,"\t\t:",self.config.get("Server",key))
+        print("Paths:")
+        for key in self.config['Paths']:
+            print(key,"\t:",self.config.get("Paths",key))
 
     def print_platform(self):
         print(self.platform)
 
-    def read_conf(self, conf_file="sim_core.conf"):
-        print("Not yet Implemented")
-        self.ip="localhost"
-        self.run_path="lele"
-        self.input_path="input"
-        self.output_path="output"
+    def check_communication(self):
+        cmd_ping = "ping -q -c 1 "+self.ip+" > /dev/null"
+        cmd_ssh= "ssh -q "+self.user+"@"+self.ip+" exit"
+        print(cmd_ssh)
+        print(cmd_ping)
+        online_flag = subprocess.call(cmd_ping, shell=True)
+        if online_flag==0:
+            print("Server Online!")
+        else:
+            print("Cannot reach server!")
+        connect_flag= subprocess.call(cmd_ssh, shell=True)
+        if connect_flag==0:
+            print("Connection ok!")
+        else:
+            print("Cannot connect to server!")
 
-    def check_communication(self)
-        print("Not yet Implemented")
-        #ping something
 
     def get_status(self):
-        print("Not yet Implemented")
-        #status of the accelerator platdorm
+        cmd_ssh= "ssh -q "+self.user+"@"+self.ip+" cat "+self.outputpath+"/state"
+        print(cmd_ssh)
+        state = subprocess.check_output(cmd_ssh, shell=True)
+        print(str(state))
+        f = open('state', 'w')
+        f.write(str(state))
+        f.close()
+
+    def run_sim_core(self):
+        self.get_status()
+        net_size=len(self.prj.post)
+        print("Size",str(net_size))
+
+
+        
+
 
 
