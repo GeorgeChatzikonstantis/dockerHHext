@@ -104,8 +104,21 @@ class Sim_core(Projection):
 
     def run_sim_core(self):
         self.get_status()
+        # If status is free must add here
         net_size=len(self.prj.post)
-        print("Size",str(net_size))
+        # The parameters later must be expand for all cases
+        dictt=self.prj.synapse_type.describe(template=None)
+        dictt['parameters']['weight'].shape=(1,1)
+        dictt['parameters']['delay'].shape=(1,1)
+        weight=dictt['parameters']['weight'][0][0]
+        delay=dictt['parameters']['delay'][0][0]
+        dicon=self.prj._connector.describe(template=None)
+        probability=dicon['parameters']['p_connect']
+
+        str_to_send=" -net_size "+str(net_size)+" -probability "+str(probability)
+        print(str_to_send)
+        return str_to_send
+
 
 
         
