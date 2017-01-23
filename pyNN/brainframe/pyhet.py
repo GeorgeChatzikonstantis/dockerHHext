@@ -2,15 +2,18 @@ from pyNN import common
 import os.path
 import configparser
 import subprocess
+import time
 from . import simulator
 from .projections import Projection
 
-class Backend_selector: #Selecting appropriate simulation platform
+class Backend_selector(Projection): #Selecting appropriate simulation platform
     blist=["phi","dfe","gpu"] #list of platforms
     bselection=0
+    
 
-    def __init__(self, mode):
+    def __init__(self, prj, mode):
         self.mode = mode
+        self.prj = prj
 
     def print_modes(self): # print all modes
         i=0
@@ -26,13 +29,15 @@ class Backend_selector: #Selecting appropriate simulation platform
 
 #Selecting an appropriate platform for backend
 # It selects either manually, or automatically from network density and neuron number
-    def select_backend(self, num_of_neurons=0, num_of_connections=0):
+    def select_backend(self):
         if self.mode!="a":
             return Backend_selector.blist[self.mode]
-        elif (num_of_neurons<2 and num_of_connections < 2):
-            raise ValueError('Number of neurons and connections too small...')
+        #elif (num_of_neurons<2 and num_of_connections < 2):
+        #    raise ValueError('Number of neurons and connections too small...')
         else:
-            density=num_of_connections/(num_of_neurons*(num_of_neurons-1))
+            num_of_neurons=len(self.prj.post)
+            dicon=self.prj._connector.describe(template=None)
+            density=dicon['parameters']['p_connect']
             print("Density of the network: ",density)
             print("Number on neurons: ", num_of_neurons)
             if (num_of_neurons>=4000):
@@ -61,17 +66,29 @@ class Sim_core(Projection):
         self.prj=prj
         self.config = configparser.ConfigParser()
         self.config.read(conf_file)
-        self.ip = self.config.get("Server","IP")
-        self.user = self.config.get("Server","user")
-        self.outputpath= self.config.get("Paths","outputpath")
+        if self.platform == "PHI":
+            self.ip = self.config.get("PHI","IP")
+            self.user = self.config.get("PHI","user")
+            self.outputpath = self.config.get("PHI","outputpath")
+            self.executable = self.config.get("PHI","executable")
+            self.statepathclient = self.config.get("PHI","statepathclient")
+        elif self.platform == "DFE":
+            self.ip = self.config.get("DFE","IP")
+            self.user = self.config.get("DFE","user")
+            self.outputpath = self.config.get("DFE","outputpath")
+            self.executable = self.config.get("DFE","executable")
+            self.statepathclient = self.config.get("DFE","statepathclient")
+        else:
+            raise ValueError('Unrecognized platform')
+
 
     def print_conf(self):
-        print("Server:")
-        for key in self.config['Server']:
-            print(key,"\t\t:",self.config.get("Server",key))
-        print("Paths:")
-        for key in self.config['Paths']:
-            print(key,"\t:",self.config.get("Paths",key))
+        print("PHI:")
+        for key in self.config['PHI']:
+            print(key,"\t\t:",self.config.get("PHI",key))
+        print("DFE:")
+        for key in self.config['DFE']:
+            print(key,"\t:",self.config.get("DFE",key))
 
     def print_platform(self):
         print(self.platform)
@@ -98,14 +115,34 @@ class Sim_core(Projection):
         print(cmd_ssh)
         state = subprocess.check_output(cmd_ssh, shell=True)
         print(str(state))
-        f = open('state', 'w')
+        f = open(self.statepathclient, 'w')
+        f.write(str(state))
+        f.close()
+        return state
+
+    def set_status(self,status):
+        strr=status
+        cmd_ssh= "ssh -q "+self.user+"@"+self.ip+" \'echo "+strr+">"+self.outputpath+"/state\'"
+        print(cmd_ssh)
+        state = subprocess.check_output(cmd_ssh, shell=True)
+        print(str(state))
+        f = open(self.statepathclient, 'w')
         f.write(str(state))
         f.close()
 
-    def run_sim_core(self):
-        self.get_status()
-        # If status is free must add here
+    def run_sim_core(self,simtime=1000):
         net_size=len(self.prj.post)
+        sim_time = str(simtime)
+        stat = str(self.get_status())
+        flag='free'
+        while flag not in stat:
+            time.sleep(2)
+            stat = str(self.get_status())
+            print(stat)
+
+        self.set_status("busy")
+
+
         # The parameters later must be expand for all cases
         dictt=self.prj.synapse_type.describe(template=None)
         dictt['parameters']['weight'].shape=(1,1)
@@ -115,8 +152,11 @@ class Sim_core(Projection):
         dicon=self.prj._connector.describe(template=None)
         probability=dicon['parameters']['p_connect']
 
-        str_to_send=" -net_size "+str(net_size)+" -probability "+str(probability)
+        str_to_send="ssh "+self.user+"@"+self.ip+" "+self.executable+" -net_size "
+        str_to_send+=str(net_size)+" -probability "+str(probability)+" -sim_time "+sim_time
         print(str_to_send)
+        self.set_status("free")
+
         return str_to_send
 
 

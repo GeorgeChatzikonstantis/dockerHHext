@@ -30,22 +30,22 @@ class State(common.control.BaseState):
 
     def run_until(self, tstop):
         self.t = tstop
-        cmdtest=['/srv/http/tools/neuro/bin/Phi-backend.sh']
-        cmdtest.append('-network_size')
-        cmdtest.append(str(self.neuronum))
-        cmdtest.append('-sim_time')
-        cmdtest.append(str(self.t))
+        #cmdtest=['/srv/http/tools/neuro/bin/Phi-backend.sh']
+        #cmdtest.append('-network_size')
+        #cmdtest.append(str(self.neuronum))
+        #cmdtest.append('-sim_time')
+        #cmdtest.append(str(self.t))
         #cmdtest.append('-connectivity_map')
 
-        if os.path.isfile('cellConnections.txt'):
+        #if os.path.isfile('cellConnections.txt'):
             #cmdtest.append('cellConnections.txt')
-            print("Connectivity Map Created!")
-        else:
-            print("No connectivity map")
-            exit()
-        print(cmdtest)
-        outputtest = subprocess.check_output(cmdtest)
-        print(outputtest.decode('unicode_escape'))
+        #    print("Connectivity Map Created!")
+        #else:
+        #    print("No connectivity map")
+        #    exit()
+        # print(cmdtest)
+        #outputtest = subprocess.check_output(cmdtest)
+        #print(outputtest.decode('unicode_escape'))
         self.running = True
 
     def clear(self):
