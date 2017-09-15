@@ -42,7 +42,7 @@ class Projection(common.Projection):
 
         #  Create connections
         self.connections = []
-        connector.connect(self)
+        #connector.connect(self)
         simulator.state.neuronum=len(postsynaptic_population)
         #print("Creating connectivity map!")
 # Disabled printing. it will be done on the server

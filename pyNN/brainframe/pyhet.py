@@ -1,13 +1,16 @@
 from pyNN import common
 import os.path
+import os
 import configparser
 import subprocess
 import time
+import string
+import re
 from . import simulator
 from .projections import Projection
 
 class Backend_selector(Projection): #Selecting appropriate simulation platform
-    blist=["phi","dfe","gpu"] #list of platforms
+    blist=["PHI","DFE","GPU"] #list of platforms
     bselection=0
     
 
@@ -31,7 +34,7 @@ class Backend_selector(Projection): #Selecting appropriate simulation platform
 # It selects either manually, or automatically from network density and neuron number
     def select_backend(self):
         if self.mode!="a":
-            return Backend_selector.blist[self.mode]
+            return self.mode
         #elif (num_of_neurons<2 and num_of_connections < 2):
         #    raise ValueError('Number of neurons and connections too small...')
         else:
@@ -40,18 +43,12 @@ class Backend_selector(Projection): #Selecting appropriate simulation platform
             density=dicon['parameters']['p_connect']
             print("Density of the network: ",density)
             print("Number on neurons: ", num_of_neurons)
-            if (num_of_neurons>=4000):
-                Backend_selector.bselection=2 #GPU
-            elif (density>=0.85 and num_of_neurons<4000):
-                Backend_selector.bselection=1 #DFE
-            elif (density<0.85 and num_of_neurons<900):
-                Backend_selector.bselection=1 #DFE
-            else:
+            if (num_of_neurons>=3500):
                 Backend_selector.bselection=0 #PHI
+            else:
+                Backend_selector.bselection=1 #DFE
             print("Original Selection: ", Backend_selector.blist[Backend_selector.bselection])
 
-            if Backend_selector.bselection==2: # currently we don'thave GPUs
-                Backend_selector.bselection=1
 
             tmp2=Backend_selector.bselection
             return Backend_selector.blist[tmp2]
@@ -60,7 +57,7 @@ class Backend_selector(Projection): #Selecting appropriate simulation platform
 # accelerator
 class Sim_core(Projection):
 
-    def __init__(self, platform, prj, conf_file="sim_core.ini"):
+    def __init__(self, platform, prj, conf_file="sim_core.ini-hartree"):
         self.platform= platform
         self.conf_file=conf_file
         self.prj=prj
@@ -69,14 +66,16 @@ class Sim_core(Projection):
         if self.platform == "PHI":
             self.ip = self.config.get("PHI","IP")
             self.user = self.config.get("PHI","user")
-            self.outputpath = self.config.get("PHI","outputpath")
             self.executable = self.config.get("PHI","executable")
+            self.runpath = self.config.get("PHI","runpath")
             self.statepathclient = self.config.get("PHI","statepathclient")
+            self.statepathserver = self.config.get("PHI","statepathserver")
         elif self.platform == "DFE":
             self.ip = self.config.get("DFE","IP")
             self.user = self.config.get("DFE","user")
-            self.outputpath = self.config.get("DFE","outputpath")
             self.executable = self.config.get("DFE","executable")
+            self.runpath = self.config.get("DFE","runpath")
+            self.statepathserver = self.config.get("DFE","statepathserver")
             self.statepathclient = self.config.get("DFE","statepathclient")
         else:
             raise ValueError('Unrecognized platform')
@@ -111,7 +110,7 @@ class Sim_core(Projection):
 
 
     def get_status(self):
-        cmd_ssh= "ssh -q "+self.user+"@"+self.ip+" cat "+self.outputpath+"/state"
+        cmd_ssh= "ssh -q "+self.user+"@"+self.ip+" cat "+self.statepathserver
         print(cmd_ssh)
         state = subprocess.check_output(cmd_ssh, shell=True)
         print(str(state))
@@ -122,15 +121,15 @@ class Sim_core(Projection):
 
     def set_status(self,status):
         strr=status
-        cmd_ssh= "ssh -q "+self.user+"@"+self.ip+" \'echo "+strr+">"+self.outputpath+"/state\'"
+        cmd_ssh= "ssh -q "+self.user+"@"+self.ip+" \'echo "+strr+">"+self.statepathserver+"\'"
         print(cmd_ssh)
         state = subprocess.check_output(cmd_ssh, shell=True)
-        print(str(state))
+        print(strr)
         f = open(self.statepathclient, 'w')
-        f.write(str(state))
+        f.write(str(strr))
         f.close()
 
-    def run_sim_core(self,simtime=1000):
+    def run_sim_core(self,simtime=1000,run_id='tmp22'):
         net_size=len(self.prj.post)
         sim_time = str(simtime)
         stat = str(self.get_status())
@@ -152,9 +151,43 @@ class Sim_core(Projection):
         dicon=self.prj._connector.describe(template=None)
         probability=dicon['parameters']['p_connect']
 
-        str_to_send="ssh "+self.user+"@"+self.ip+" "+self.executable+" -net_size "
+        str_to_send="ssh -t -t "+self.user+"@"+self.ip+" "+self.executable+" -net_size "
         str_to_send+=str(net_size)+" -probability "+str(probability)+" -sim_time "+sim_time
+        str_to_send+=" -dir "+run_id
+        outs = subprocess.check_output(str_to_send, shell=True)
+
         print(str_to_send)
+        tmp=outs.decode("utf-8") 
+        output_list=tmp.split('\n')
+        exec_time=''
+        sim_output=''
+        write_flag=0
+        for line in output_list:
+            if re.search('execution time',line, re.IGNORECASE):
+                exec_time=line
+            if re.search('runtime',line, re.IGNORECASE):
+                exec_time=line
+            if write_flag==1:
+                sim_output+=line
+            if 'output_start' in line:
+                write_flag=1
+            if 'output_stop' in line:
+                write_flag=0
+
+        print(exec_time)
+        print("---------------")
+        print(sim_output)
+        
+        f = open("stats.txt", 'w')
+        f.write(exec_time)
+        f.close()
+        ttmp='\n'.join(sim_output[i:i+86] for i in range(0, len(sim_output), 86))
+        g = open("sim_output.txt", 'w')
+        g.write(ttmp)
+        g.close()
+
+
+        #print(str(outs))
         self.set_status("free")
 
         return str_to_send
