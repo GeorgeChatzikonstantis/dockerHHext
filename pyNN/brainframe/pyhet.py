@@ -57,7 +57,7 @@ class Backend_selector(Projection): #Selecting appropriate simulation platform
 # accelerator
 class Sim_core(Projection):
 
-    def __init__(self, platform, prj, conf_file="sim_core.ini-hartree"):
+    def __init__(self, platform, prj, conf_file="sim_core-microlab.ini"):
         self.platform= platform
         self.conf_file=conf_file
         self.prj=prj
@@ -129,17 +129,18 @@ class Sim_core(Projection):
         f.write(str(strr))
         f.close()
 
-    def run_sim_core(self,simtime=1000,run_id='tmp22'):
+    def run_sim_core(self,simtime=1000,run_id='tmp22', threadnum=50):
         net_size=len(self.prj.post)
         sim_time = str(simtime)
-        stat = str(self.get_status())
-        flag='free'
-        while flag not in stat:
-            time.sleep(2)
-            stat = str(self.get_status())
-            print(stat)
+        thread_num= str(threadnum)
+        #stat = str(self.get_status())
+        #flag='free'
+        #while flag not in stat:
+        #    time.sleep(2)
+        #    stat = str(self.get_status())
+        #    print(stat)
 
-        self.set_status("busy")
+        #self.set_status("busy")
 
 
         # The parameters later must be expand for all cases
@@ -153,42 +154,42 @@ class Sim_core(Projection):
 
         str_to_send="ssh -t -t "+self.user+"@"+self.ip+" "+self.executable+" -net_size "
         str_to_send+=str(net_size)+" -probability "+str(probability)+" -sim_time "+sim_time
-        str_to_send+=" -dir "+run_id
+        str_to_send+=" -dir "+run_id +" -th "+thread_num
+        print(str_to_send)
         outs = subprocess.check_output(str_to_send, shell=True)
 
-        print(str_to_send)
         tmp=outs.decode("utf-8") 
-        output_list=tmp.split('\n')
-        exec_time=''
-        sim_output=''
-        write_flag=0
-        for line in output_list:
-            if re.search('execution time',line, re.IGNORECASE):
-                exec_time=line
-            if re.search('runtime',line, re.IGNORECASE):
-                exec_time=line
-            if write_flag==1:
-                sim_output+=line
-            if 'output_start' in line:
-                write_flag=1
-            if 'output_stop' in line:
-                write_flag=0
-
-        print(exec_time)
-        print("---------------")
-        print(sim_output)
-        
-        f = open("stats.txt", 'w')
-        f.write(exec_time)
-        f.close()
-        ttmp='\n'.join(sim_output[i:i+86] for i in range(0, len(sim_output), 86))
-        g = open("sim_output.txt", 'w')
-        g.write(ttmp)
-        g.close()
+#        output_list=tmp.split('\n')
+#        exec_time=''
+#        sim_output=''
+#        write_flag=0
+#        for line in output_list:
+#            if re.search('execution time',line, re.IGNORECASE):
+#                exec_time=line
+#            if re.search('runtime',line, re.IGNORECASE):
+#                exec_time=line
+#            if write_flag==1:
+#                sim_output+=line
+#            if 'output_start' in line:
+#                write_flag=1
+#            if 'output_stop' in line:
+#                write_flag=0
+#
+#        print(exec_time)
+#        print("---------------")
+#        print(sim_output)
+#        
+#        f = open("stats.txt", 'w')
+#        f.write(exec_time)
+#        f.close()
+#        ttmp='\n'.join(sim_output[i:i+86] for i in range(0, len(sim_output), 86))
+#        g = open("sim_output.txt", 'w')
+#        g.write(ttmp)
+#        g.close()
 
 
         #print(str(outs))
-        self.set_status("free")
+        #self.set_status("free")
 
         return str_to_send
 
