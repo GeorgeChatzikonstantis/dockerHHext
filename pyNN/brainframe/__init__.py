@@ -15,7 +15,7 @@ from pyNN import common
 from pyNN.common.control import DEFAULT_MAX_DELAY, DEFAULT_TIMESTEP, DEFAULT_MIN_DELAY
 from pyNN.connectors import *
 from pyNN.recording import *
-from . import simulator
+#from . import simulator
 from .standardmodels import *
 from .populations import Population, PopulationView, Assembly
 from .projections import Projection

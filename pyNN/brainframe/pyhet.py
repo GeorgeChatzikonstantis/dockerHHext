@@ -57,7 +57,7 @@ class Backend_selector(Projection): #Selecting appropriate simulation platform
 # accelerator
 class Sim_core(Projection):
 
-    def __init__(self, platform, prj, conf_file="sim_core-microlab.ini"):
+    def __init__(self, platform, prj, conf_file="sim_core.ini"):
         self.platform= platform
         self.conf_file=conf_file
         self.prj=prj
@@ -66,10 +66,12 @@ class Sim_core(Projection):
         if self.platform == "PHI":
             self.ip = self.config.get("PHI","IP")
             self.user = self.config.get("PHI","user")
-            self.executable = self.config.get("PHI","executable")
+            self.backend = self.config.get("PHI","backend")
             self.runpath = self.config.get("PHI","runpath")
-            self.statepathclient = self.config.get("PHI","statepathclient")
-            self.statepathserver = self.config.get("PHI","statepathserver")
+            self.infilepath = self.config.get("PHI","inputpath")
+            self.outfilepath = self.config.get("PHI","outputpath")
+#            self.statepathclient = self.config.get("PHI","statepathclient")
+#            self.statepathserver = self.config.get("PHI","statepathserver")
         elif self.platform == "DFE":
             self.ip = self.config.get("DFE","IP")
             self.user = self.config.get("DFE","user")
@@ -152,9 +154,14 @@ class Sim_core(Projection):
         dicon=self.prj._connector.describe(template=None)
         probability=dicon['parameters']['p_connect']
 
-        str_to_send="ssh -t -t "+self.user+"@"+self.ip+" "+self.executable+" -net_size "
-        str_to_send+=str(net_size)+" -probability "+str(probability)+" -sim_time "+sim_time
+#        str_to_send="ssh -t -t "+self.user+"@"+self.ip+" "+self.backend+" -net_size "
+#        str_to_send+=str(net_size)+" -probability "+str(probability)+" -sim_time "+sim_time
+#        str_to_send+=" -dir "+run_id +" -th "+thread_num
+
+        str_to_send=""+self.backend+" -net_size "+str(net_size)
+        str_to_send+=" -probability "+str(probability)+" -sim_time "+sim_time
         str_to_send+=" -dir "+run_id +" -th "+thread_num
+
         print(str_to_send)
         outs = subprocess.check_output(str_to_send, shell=True)
 
