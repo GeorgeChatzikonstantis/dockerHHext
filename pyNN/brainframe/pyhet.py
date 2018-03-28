@@ -6,11 +6,13 @@ import subprocess
 import time
 import string
 import re
+import sys
+import uuid
 from . import simulator
 from .projections import Projection
 
 class Backend_selector(Projection): #Selecting appropriate simulation platform
-    blist=["PHI","DFE","GPU"] #list of platforms
+    blist=["XEON","PHI","DFE","GPU"] #list of platforms
     bselection=0
     
 
@@ -44,7 +46,7 @@ class Backend_selector(Projection): #Selecting appropriate simulation platform
             print("Density of the network: ",density)
             print("Number on neurons: ", num_of_neurons)
             if (num_of_neurons>=3500):
-                Backend_selector.bselection=0 #PHI
+                Backend_selector.bselection=0 #XEON
             else:
                 Backend_selector.bselection=1 #DFE
             print("Original Selection: ", Backend_selector.blist[Backend_selector.bselection])
@@ -63,15 +65,15 @@ class Sim_core(Projection):
         self.prj=prj
         self.config = configparser.ConfigParser()
         self.config.read(conf_file)
-        if self.platform == "PHI":
-            self.ip = self.config.get("PHI","IP")
-            self.user = self.config.get("PHI","user")
-            self.backend = self.config.get("PHI","backend")
-            self.runpath = self.config.get("PHI","runpath")
-            self.infilepath = self.config.get("PHI","inputpath")
-            self.outfilepath = self.config.get("PHI","outputpath")
-#            self.statepathclient = self.config.get("PHI","statepathclient")
-#            self.statepathserver = self.config.get("PHI","statepathserver")
+        if self.platform == "XEON":
+            self.ip = self.config.get("XEON","IP")
+            self.user = self.config.get("XEON","user")
+            self.backend = self.config.get("XEON","backend")
+            self.runpath = self.config.get("XEON","runpath")
+            self.infilepath = self.config.get("XEON","inputpath")
+            self.outfilepath = self.config.get("XEON","outputpath")
+#            self.statepathclient = self.config.get("XEON","statepathclient")
+#            self.statepathserver = self.config.get("XEON","statepathserver")
         elif self.platform == "DFE":
             self.ip = self.config.get("DFE","IP")
             self.user = self.config.get("DFE","user")
@@ -84,9 +86,9 @@ class Sim_core(Projection):
 
 
     def print_conf(self):
-        print("PHI:")
-        for key in self.config['PHI']:
-            print(key,"\t\t:",self.config.get("PHI",key))
+        print("XEON:")
+        for key in self.config['XEON']:
+            print(key,"\t\t:",self.config.get("XEON",key))
         print("DFE:")
         for key in self.config['DFE']:
             print(key,"\t:",self.config.get("DFE",key))
@@ -131,10 +133,10 @@ class Sim_core(Projection):
         f.write(str(strr))
         f.close()
 
-    def run_sim_core(self,simtime=1000,run_id='tmp22', threadnum=50):
+    def run_sim_core(self,simtime=1000):
         net_size=len(self.prj.post)
         sim_time = str(simtime)
-        thread_num= str(threadnum)
+        exp_id = str(uuid.uuid4().hex)
         #stat = str(self.get_status())
         #flag='free'
         #while flag not in stat:
@@ -158,14 +160,29 @@ class Sim_core(Projection):
 #        str_to_send+=str(net_size)+" -probability "+str(probability)+" -sim_time "+sim_time
 #        str_to_send+=" -dir "+run_id +" -th "+thread_num
 
-        str_to_send=""+self.backend+" -net_size "+str(net_size)
-        str_to_send+=" -probability "+str(probability)+" -sim_time "+sim_time
-        str_to_send+=" -dir "+run_id +" -th "+thread_num
+        command=""+self.backend+" -net_size "+str(net_size)
+        command+=" -probability "+str(probability)+" -sim_time "+sim_time
+        command+=" -dir "+exp_id
 
-        print(str_to_send)
-        outs = subprocess.check_output(str_to_send, shell=True)
+        print(command)
+#        outs = subprocess.check_output(str_to_send, stderr=subprocess.STDOUT, shell=True)
+#        tmp=outs.decode("utf-8") 
 
-        tmp=outs.decode("utf-8") 
+        ## run the command
+        p = subprocess.Popen(command, shell=True)
+        ## wait on it
+        p.wait()
+
+        ## start displaying output immediately
+#        while True:
+#          out = p.stderr.read(1)
+#          if out == '' and p.poll() != None:
+#            break
+#          if out != '':
+#            sys.stdout.write(str(out))
+#            sys.stdout.flush()
+        
+
 #        output_list=tmp.split('\n')
 #        exec_time=''
 #        sim_output=''
@@ -195,10 +212,10 @@ class Sim_core(Projection):
 #        g.close()
 
 
-        #print(str(outs))
+#        print(str(outs))
         #self.set_status("free")
 
-        return str_to_send
+        return command
 
 
 
