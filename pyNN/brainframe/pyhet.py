@@ -74,6 +74,13 @@ class Sim_core(Projection):
             self.outfilepath = self.config.get("XEON","outputpath")
 #            self.statepathclient = self.config.get("XEON","statepathclient")
 #            self.statepathserver = self.config.get("XEON","statepathserver")
+        elif self.platform == "PHI":
+            self.ip = self.config.get("PHI","IP")
+            self.user = self.config.get("PHI","user")
+            self.backend = self.config.get("PHI","backend")
+            self.runpath = self.config.get("PHI","runpath")
+            self.infilepath = self.config.get("PHI","inputpath")
+            self.outfilepath = self.config.get("PHI","outputpath")
         elif self.platform == "DFE":
             self.ip = self.config.get("DFE","IP")
             self.user = self.config.get("DFE","user")
@@ -89,6 +96,9 @@ class Sim_core(Projection):
         print("XEON:")
         for key in self.config['XEON']:
             print(key,"\t\t:",self.config.get("XEON",key))
+        print("PHI:")
+        for key in self.config['PHI']:
+            print(key,"\t:",self.config.get("PHI",key))
         print("DFE:")
         for key in self.config['DFE']:
             print(key,"\t:",self.config.get("DFE",key))
